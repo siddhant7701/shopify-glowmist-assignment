@@ -1,0 +1,11 @@
+{% comment %}
+  Shared section header. Params: eyebrow, title, subtext, align ('center'|'left'), anchor
+{% endcomment %}
+{%- if title != blank or eyebrow != blank or subtext != blank -%}
+  <div class="gm__head{% if align == 'left' %} is-left{% endif %}"{% if anchor != blank %} id="{{ anchor }}"{% endif %}>
+    {%- if eyebrow != blank -%}<p class="gm__eyebrow">{{ eyebrow }}</p>{%- endif -%}
+    {%- if title != blank -%}<h2>{{ title }}</h2>{%- endif -%}
+    {%- if subtext != blank -%}<p class="gm__lead">{{ subtext }}</p>{%- endif -%}
+  </div>
+{%- endif -%}
+ 

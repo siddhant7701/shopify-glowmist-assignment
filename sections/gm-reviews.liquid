@@ -1,0 +1,53 @@
+{% comment %} Section: Reviews (gm-reviews) {% endcomment %}
+{{ 'gm-product.css' | asset_url | stylesheet_tag }}
+<div class="gm-sec gm__pad">
+  <div class="gm__wrap">
+    {% render 'gm-section-head', eyebrow: section.settings.eyebrow, title: section.settings.title, subtext: section.settings.subtext, anchor: section.settings.anchor %}
+    {%- if section.blocks.size > 0 -%}
+      <div class="gm__reviews-grid">
+        {%- for block in section.blocks -%}
+          <div class="gm__review" {{ block.shopify_attributes }}>
+            {% render 'gm-stars', rating: block.settings.rating %}
+            {%- if block.settings.text != blank -%}<p>“{{ block.settings.text }}”</p>{%- endif -%}
+            <div class="gm__reviewer">
+              {%- if block.settings.image != blank -%}{{ block.settings.image | image_url: width: 88 | image_tag: loading: 'lazy', alt: block.settings.name }}
+              {%- else -%}<span class="gm__reviewer-ph">{{ block.settings.name | slice: 0 | upcase }}</span>{%- endif -%}
+              <div style="text-align:left">
+                {%- if block.settings.name != blank -%}<strong>{{ block.settings.name }}</strong>{%- endif -%}
+                {%- if block.settings.meta != blank -%}<small>{{ block.settings.meta }}</small>{%- endif -%}
+              </div>
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+{% schema %}
+{
+  "name": "Reviews",
+  "tag": "section",
+  "class": "gm-reviews",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Reviews" },
+    { "type": "text", "id": "title", "label": "Title", "default": "What customers say" },
+    { "type": "textarea", "id": "subtext", "label": "Subtext" },
+    { "type": "text", "id": "anchor", "label": "Anchor ID", "info": "Optional, e.g. reviews" }
+  ],
+  "blocks": [
+    {
+      "type": "review", "name": "Review",
+      "settings": [
+        { "type": "text", "id": "name", "label": "Customer name", "default": "Happy customer" },
+        { "type": "text", "id": "meta", "label": "Subtitle", "default": "Verified buyer" },
+        { "type": "range", "id": "rating", "label": "Star rating", "min": 1, "max": 5, "step": 1, "default": 5 },
+        { "type": "textarea", "id": "text", "label": "Review text", "default": "Add a short, believable customer quote here." },
+        { "type": "image_picker", "id": "image", "label": "Customer image (optional)" }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "Reviews", "blocks": [ { "type": "review" }, { "type": "review" }, { "type": "review" } ] }
+  ]
+}
+{% endschema %}

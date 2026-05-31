@@ -1,0 +1,38 @@
+{% comment %}
+  Snippet: gm-cart-drawer
+  Slide-out AJAX cart. Rendered once (by the Product main section). The JS in
+  gm-product.js moves it to <body>, opens it after Add to Cart, and handles
+  quantity changes / removal via /cart/change.js.
+{% endcomment %}
+<div data-gm-drawer-root>
+  <div class="gm-drawer-overlay" data-gm-cart-overlay></div>
+  <aside
+    class="gm-drawer"
+    data-gm-cart
+    role="dialog"
+    aria-modal="true"
+    aria-label="Shopping cart"
+    aria-hidden="true"
+    data-cart-url="{{ routes.cart_url }}"
+    data-cart-change-url="{{ routes.cart_change_url }}"
+    data-money-format="{{ shop.money_format }}"
+  >
+    <div class="gm-drawer__head">
+      <h2>Your cart</h2>
+      <button type="button" class="gm-drawer__close" data-gm-cart-close aria-label="Close cart">&times;</button>
+    </div>
+
+    <div class="gm-drawer__body" data-gm-cart-body>
+      <div class="gm-drawer__empty">Loading…</div>
+    </div>
+
+    <div class="gm-drawer__foot" data-gm-cart-foot hidden>
+      <div class="gm-drawer__subtotal">
+        <span>Subtotal</span>
+        <span data-gm-cart-subtotal></span>
+      </div>
+      <a href="/checkout" class="gm__btn gm__btn--cta">Checkout</a>
+      <a href="{{ routes.cart_url }}" class="gm-drawer__viewcart">View cart</a>
+    </div>
+  </aside>
+</div>

@@ -1,0 +1,47 @@
+{% comment %} Section: FAQ (gm-faq) — accordion {% endcomment %}
+{{ 'gm-product.css' | asset_url | stylesheet_tag }}
+<div class="gm-sec gm__pad">
+  <div class="gm__wrap">
+    {% render 'gm-section-head', eyebrow: section.settings.eyebrow, title: section.settings.title, subtext: section.settings.subtext, anchor: section.settings.anchor %}
+    {%- if section.blocks.size > 0 -%}
+      <div class="gm__faq" data-gm-faq>
+        {%- for block in section.blocks -%}
+          <div class="gm__faq-item" {{ block.shopify_attributes }}>
+            <button type="button" class="gm__faq-q" aria-expanded="false" id="gm-q-{{ block.id }}" aria-controls="gm-a-{{ block.id }}">
+              <span>{{ block.settings.question }}</span><span class="gm__faq-ic" aria-hidden="true"></span>
+            </button>
+            <div class="gm__faq-a" id="gm-a-{{ block.id }}" role="region" aria-labelledby="gm-q-{{ block.id }}">
+              <div class="gm__faq-a-inner">{{ block.settings.answer }}</div>
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+<script src="{{ 'gm-product.js' | asset_url }}" defer></script>
+{% schema %}
+{
+  "name": "FAQ",
+  "tag": "section",
+  "class": "gm-faq",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "FAQ" },
+    { "type": "text", "id": "title", "label": "Title", "default": "Questions, answered" },
+    { "type": "textarea", "id": "subtext", "label": "Subtext" },
+    { "type": "text", "id": "anchor", "label": "Anchor ID", "default": "faq" }
+  ],
+  "blocks": [
+    {
+      "type": "faq", "name": "FAQ item",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question", "default": "Frequently asked question?" },
+        { "type": "richtext", "id": "answer", "label": "Answer", "default": "<p>Write a clear, reassuring answer here.</p>" }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "FAQ", "blocks": [ { "type": "faq" }, { "type": "faq" }, { "type": "faq" }, { "type": "faq" } ] }
+  ]
+}
+{% endschema %}

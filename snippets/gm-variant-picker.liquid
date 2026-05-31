@@ -1,0 +1,184 @@
+{% comment %}
+  Smart Variant Picker
+  - Color => Swatches
+  - Size => Pills
+  - Others => Dropdown
+{% endcomment %}
+
+{%- unless p.has_only_default_variant -%}
+  <style>
+    .gm-vp {
+      margin-bottom: 20px;
+    }
+
+    .gm-vp__label {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #222;
+    }
+
+    .gm-vp__values {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .gm-vp__input {
+      display: none;
+    }
+
+    .gm-vp__pill {
+      min-width: 44px;
+      height: 44px;
+      padding: 0 16px;
+      border: 1px solid #ddd;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background: #fff;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all .2s ease;
+    }
+
+    .gm-vp__input:checked + .gm-vp__pill {
+      background: #000;
+      color: #fff;
+      border-color: #000;
+    }
+
+    .gm-vp__pill:hover {
+      border-color: #000;
+    }
+
+    .gm-vp__swatch {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 2px solid #ddd;
+      cursor: pointer;
+      transition: .2s;
+      position: relative;
+    }
+
+    .gm-vp__input:checked + .gm-vp__swatch {
+      border-color: #000;
+      transform: scale(1.08);
+    }
+
+    .gm-vp__input:checked + .gm-vp__swatch:after {
+      content: "";
+      position: absolute;
+      inset: -5px;
+      border: 1px solid #000;
+      border-radius: 50%;
+    }
+
+    .gm-vp__select {
+      width: 100%;
+      height: 48px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 0 14px;
+      font-size: 14px;
+      background: #fff;
+      cursor: pointer;
+    }
+  </style>
+
+  {%- for option in p.options_with_values -%}
+
+    {% assign option_name = option.name | downcase %}
+
+    <div class="gm-vp" data-gm-option-index="{{ forloop.index0 }}">
+
+      <div class="gm-vp__label">
+        {{ option.name }}:
+        <span data-gm-option-selected>
+          {{ option.selected_value }}
+        </span>
+      </div>
+
+      {% if option_name contains 'color'
+        or option_name contains 'colour'
+      %}
+
+        <div class="gm-vp__values">
+
+          {% for value in option.values %}
+
+            {% assign oid = section_id | append: '-' | append: option.position | append: '-' | append: forloop.index %}
+
+            <input
+              type="radio"
+              class="gm-vp__input"
+              name="gm-opt-{{ section_id }}-{{ option.position }}"
+              id="gm-vp-{{ oid }}"
+              value="{{ value | escape }}"
+              {% if option.selected_value == value %}checked{% endif %}
+            >
+
+            <label
+              class="gm-vp__swatch"
+              for="gm-vp-{{ oid }}"
+              style="background: {{ value | downcase }};"
+              title="{{ value }}"
+            ></label>
+
+          {% endfor %}
+
+        </div>
+
+      {% elsif option_name contains 'size' %}
+
+        <div class="gm-vp__values">
+
+          {% for value in option.values %}
+
+            {% assign oid = section_id | append: '-' | append: option.position | append: '-' | append: forloop.index %}
+
+            <input
+              type="radio"
+              class="gm-vp__input"
+              name="gm-opt-{{ section_id }}-{{ option.position }}"
+              id="gm-vp-{{ oid }}"
+              value="{{ value | escape }}"
+              {% if option.selected_value == value %}checked{% endif %}
+            >
+
+            <label
+              class="gm-vp__pill"
+              for="gm-vp-{{ oid }}"
+            >
+              {{ value }}
+            </label>
+
+          {% endfor %}
+
+        </div>
+
+      {% else %}
+
+        <select
+          class="gm-vp__select"
+          data-gm-dropdown
+        >
+          {% for value in option.values %}
+            <option 
+              value="{{ value | escape }}"
+              {% if option.selected_value == value %}selected{% endif %}
+            >
+              {{ value }}
+            </option>
+          {% endfor %}
+        </select>
+
+      {% endif %}
+
+    </div>
+
+  {%- endfor -%}
+{%- endunless -%}

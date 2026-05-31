@@ -1,0 +1,44 @@
+{% comment %} Section: How to use (gm-how-to-use) — numbered steps {% endcomment %}
+{{ 'gm-product.css' | asset_url | stylesheet_tag }}
+<div class="gm-sec gm__pad">
+  <div class="gm__wrap">
+    {% render 'gm-section-head', eyebrow: section.settings.eyebrow, title: section.settings.title, subtext: section.settings.subtext, anchor: section.settings.anchor %}
+    {%- if section.blocks.size > 0 -%}
+      <div class="gm__steps">
+        {%- for block in section.blocks -%}
+          <div class="gm__step" {{ block.shopify_attributes }}>
+            <div class="gm__step-num">{{ block.settings.number | default: forloop.index }}</div>
+            {%- if block.settings.title != blank -%}<h3>{{ block.settings.title }}</h3>{%- endif -%}
+            {%- if block.settings.text != blank -%}<p>{{ block.settings.text }}</p>{%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+{% schema %}
+{
+  "name": "How to use",
+  "tag": "section",
+  "class": "gm-how-to-use",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "How to use" },
+    { "type": "text", "id": "title", "label": "Title", "default": "How to use" },
+    { "type": "textarea", "id": "subtext", "label": "Subtext" },
+    { "type": "text", "id": "anchor", "label": "Anchor ID", "info": "Optional, e.g. how-to-use" }
+  ],
+  "blocks": [
+    {
+      "type": "step", "name": "Step",
+      "settings": [
+        { "type": "text", "id": "number", "label": "Number override", "info": "Optional. Defaults to order." },
+        { "type": "text", "id": "title", "label": "Title", "default": "Step title" },
+        { "type": "textarea", "id": "text", "label": "Text", "default": "What to do in this step." }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "How to use", "blocks": [ { "type": "step" }, { "type": "step" }, { "type": "step" } ] }
+  ]
+}
+{% endschema %}

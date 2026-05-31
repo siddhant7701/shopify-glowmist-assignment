@@ -1,0 +1,48 @@
+{% comment %} Section: Benefits (gm-benefits) — icon/emoji + title + text cards {% endcomment %}
+{{ 'gm-product.css' | asset_url | stylesheet_tag }}
+<div class="gm-sec gm__pad">
+  <div class="gm__wrap">
+    {% render 'gm-section-head', eyebrow: section.settings.eyebrow, title: section.settings.title, subtext: section.settings.subtext, anchor: section.settings.anchor %}
+    {%- if section.blocks.size > 0 -%}
+      <div class="gm__benefits-grid">
+        {%- for block in section.blocks -%}
+          <div class="gm__benefit" {{ block.shopify_attributes }}>
+            <div class="gm__benefit-ic">
+              {%- if block.settings.icon != blank -%}{{ block.settings.icon | image_url: width: 60 | image_tag: loading: 'lazy', alt: block.settings.title }}
+              {%- else -%}<span>{{ block.settings.emoji | default: '✦' }}</span>{%- endif -%}
+            </div>
+            {%- if block.settings.title != blank -%}<h3>{{ block.settings.title }}</h3>{%- endif -%}
+            {%- if block.settings.text != blank -%}<p>{{ block.settings.text }}</p>{%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+{% schema %}
+{
+  "name": "Benefits",
+  "tag": "section",
+  "class": "gm-benefits",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Benefits" },
+    { "type": "text", "id": "title", "label": "Title", "default": "Why you will love it" },
+    { "type": "textarea", "id": "subtext", "label": "Subtext" },
+    { "type": "text", "id": "anchor", "label": "Anchor ID", "info": "Optional, e.g. benefits" }
+  ],
+  "blocks": [
+    {
+      "type": "benefit", "name": "Benefit",
+      "settings": [
+        { "type": "image_picker", "id": "icon", "label": "Icon image", "info": "Optional. Falls back to emoji." },
+        { "type": "text", "id": "emoji", "label": "Emoji fallback", "default": "✦" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Benefit title" },
+        { "type": "textarea", "id": "text", "label": "Text", "default": "Describe the benefit in one short sentence." }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "Benefits", "blocks": [ { "type": "benefit" }, { "type": "benefit" }, { "type": "benefit" }, { "type": "benefit" } ] }
+  ]
+}
+{% endschema %}

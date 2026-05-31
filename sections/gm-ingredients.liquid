@@ -1,0 +1,50 @@
+{% comment %} Section: Ingredients / Features (gm-ingredients) {% endcomment %}
+{{ 'gm-product.css' | asset_url | stylesheet_tag }}
+<div class="gm-sec gm__pad">
+  <div class="gm__wrap">
+    {% render 'gm-section-head', eyebrow: section.settings.eyebrow, title: section.settings.title, subtext: section.settings.subtext, anchor: section.settings.anchor %}
+    {%- if section.blocks.size > 0 -%}
+      <div class="gm__ing-grid">
+        {%- for block in section.blocks -%}
+          <div class="gm__ing" {{ block.shopify_attributes }}>
+            <div class="gm__ing-img">
+              {%- if block.settings.image != blank -%}{{ block.settings.image | image_url: width: 500 | image_tag: loading: 'lazy', alt: block.settings.name }}
+              {%- else -%}<span>{{ block.settings.emoji | default: '🌿' }}</span>{%- endif -%}
+            </div>
+            <div class="gm__ing-body">
+              {%- if block.settings.name != blank -%}<h3>{{ block.settings.name }}</h3>{%- endif -%}
+              {%- if block.settings.description != blank -%}<p>{{ block.settings.description }}</p>{%- endif -%}
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+{% schema %}
+{
+  "name": "Ingredients / Features",
+  "tag": "section",
+  "class": "gm-ingredients",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Inside" },
+    { "type": "text", "id": "title", "label": "Title", "default": "What's inside" },
+    { "type": "textarea", "id": "subtext", "label": "Subtext" },
+    { "type": "text", "id": "anchor", "label": "Anchor ID", "info": "Optional, e.g. ingredients" }
+  ],
+  "blocks": [
+    {
+      "type": "ingredient", "name": "Ingredient / Feature",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "emoji", "label": "Emoji fallback", "default": "🌿" },
+        { "type": "text", "id": "name", "label": "Name", "default": "Ingredient name" },
+        { "type": "textarea", "id": "description", "label": "Description", "default": "Short description." }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "Ingredients / Features", "blocks": [ { "type": "ingredient" }, { "type": "ingredient" }, { "type": "ingredient" }, { "type": "ingredient" } ] }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,402 @@
+{% comment %}
+  Section: Product main (gm-product)
+  Gallery (left, fixed) + a BLOCK-DRIVEN buy box (right). The info column is
+  built from section.blocks IN ORDER, so you can drag/add/remove:
+    Title · Price · Variant picker · Quantity · Add to Cart · Trust row ·
+    Secondary links · Text · Product description · Separator · Custom Liquid.
+  Also injects the brand color tokens used by every gm-* section, renders the
+  cart drawer, the sticky bar, the variant JSON and product schema.
+{% endcomment %}
+
+{{ 'gm-product.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign s = section.settings
+  assign p = product | default: s.product
+  assign current = p.selected_or_first_available_variant
+  assign uid = section.id
+-%}
+
+{%- style -%}
+  :root {
+    --gm-primary: {{ s.color_primary }};
+    --gm-primary-dark: {{ s.color_primary | color_darken: 12 }};
+    --gm-accent: {{ s.color_accent }};
+    --gm-bg: {{ s.color_bg }};
+    --gm-surface: {{ s.color_surface }};
+    --gm-text: {{ s.color_text }};
+    --gm-muted: {{ s.color_text | color_lighten: 28 }};
+    --gm-border: {{ s.color_text | color_modify: 'alpha', 0.12 }};
+    --gm-cta: {{ s.color_cta }};
+    --gm-cta-text: {{ s.color_cta_text }};
+    --gm-radius: {{ s.corner_radius }}px;
+    --gm-serif: {{ s.heading_font.family }}, {{ s.heading_font.fallback_families }};
+  }
+{%- endstyle -%}
+
+<div
+  id="gm-product-{{ uid }}"
+  class="gm-sec gm__hero"
+  data-gm-hero
+  data-gm-product
+  data-cart-add-url="{{ routes.cart_add_url }}"
+  data-cart-url="{{ routes.cart_url }}"
+  data-variant-id="{{ current.id }}"
+  data-after-add="{{ s.after_add }}"
+  data-add-text="{{ s.cta_text | escape }}"
+  data-sold-text="{{ s.soldout_text | escape }}"
+  data-added-text="{{ s.added_text | escape }}"
+>
+  <div class="gm__wrap">
+    <div class="gm__hero-grid">
+      {%- comment -%} ----- Gallery (left) ----- {%- endcomment -%}
+      <div class="gm__gallery" data-gm-gallery>
+        {%- if s.offer_badge != blank -%}<span class="gm__offer-badge">{{ s.offer_badge }}</span>{%- endif -%}
+        {%- if s.hero_image != blank -%}
+          <div class="gm__gallery-main">
+            {{ s.hero_image | image_url: width: 1000 | image_tag: loading: 'eager', sizes: '(min-width: 860px) 50vw, 100vw', widths: '500, 750, 1000, 1400' }}
+          </div>
+        {%- elsif p != blank and p.media.size > 0 -%}
+          {%- assign featured = p.selected_or_first_available_variant.featured_media | default: p.featured_media -%}
+          <div class="gm__gallery-main">
+            <img data-gm-main src="{{ featured.preview_image | image_url: width: 1000 }}" alt="{{ featured.alt | default: p.title | escape }}" width="1000" height="1000" loading="eager">
+          </div>
+          {%- if p.media.size > 1 -%}
+            <div class="gm__gallery-thumbs">
+              {%- for media in p.media -%}
+                <button type="button" class="gm__thumb{% if media.id == featured.id %} is-active{% endif %}" data-gm-thumb data-full="{{ media.preview_image | image_url: width: 1000 }}" aria-label="View image {{ forloop.index }}">
+                  <img src="{{ media.preview_image | image_url: width: 160 }}" alt="" loading="lazy" width="72" height="72">
+                </button>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+        {%- elsif p != blank and p.featured_image != blank -%}
+          <div class="gm__gallery-main">
+            {{ p.featured_image | image_url: width: 1000 | image_tag: loading: 'eager', sizes: '(min-width: 860px) 50vw, 100vw', widths: '500, 750, 1000, 1400' }}
+          </div>
+        {%- else -%}
+          <div class="gm__gallery-main">{{ 'product-1' | placeholder_svg_tag: 'gm__placeholder' }}</div>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} ----- Buy box (right) — block driven ----- {%- endcomment -%}
+      <div class="gm__hero-copy gm__info">
+        {%- if section.blocks.size > 0 -%}
+        {%- for block in section.blocks -%}
+          {%- case block.type -%}
+
+            {%- when 'title' -%}
+              {%- assign eb = block.settings.eyebrow | default: p.vendor -%}
+              {%- assign hd = block.settings.heading | default: p.title | default: 'Your product headline' -%}
+              <div class="gm__ib" {{ block.shopify_attributes }}>
+                {%- if eb != blank -%}<p class="gm__eyebrow">{{ eb }}</p>{%- endif -%}
+                <h1 class="gm__title">{{ hd }}</h1>
+                {%- if block.settings.subtext != blank -%}<p class="gm__sub">{{ block.settings.subtext }}</p>{%- endif -%}
+              </div>
+
+            {%- when 'price' -%}
+              <div class="gm__ib" {{ block.shopify_attributes }}>
+                {%- if p != blank -%}
+                  <div class="gm__pricerow">
+                    <span class="gm__price" data-gm-price>{{ current.price | money }}</span>
+                    {%- if current.compare_at_price > current.price -%}
+                      <span class="gm__compare" data-gm-compare>{{ current.compare_at_price | money }}</span>
+                      {%- assign pct = current.compare_at_price | minus: current.price | times: 100 | divided_by: current.compare_at_price -%}
+                      <span class="gm__save">Save {{ pct }}%</span>
+                    {%- endif -%}
+                  </div>
+                {%- else -%}
+                  <div class="gm__pricerow"><span class="gm__price">{{ s.fallback_price }}</span></div>
+                {%- endif -%}
+              </div>
+
+            {%- when 'variant_picker' -%}
+              <div class="gm__ib" {{ block.shopify_attributes }}>
+                {% render 'gm-variant-picker', p: p, section_id: uid %}
+              </div>
+
+            {%- when 'quantity' -%}
+              <div class="gm__ib" {{ block.shopify_attributes }}>
+                {%- if block.settings.label != blank -%}<div class="gm__label">{{ block.settings.label }}</div>{%- endif -%}
+                <div class="gm__qty" data-gm-qty>
+                  <button type="button" aria-label="Decrease quantity" data-gm-minus>&minus;</button>
+                  <input type="number" inputmode="numeric" min="1" value="1" aria-label="Quantity" data-gm-qty-input>
+                  <button type="button" aria-label="Increase quantity" data-gm-plus>&plus;</button>
+                </div>
+              </div>
+
+            {%- when 'buy_buttons' -%}
+              <div class="gm__ib" {{ block.shopify_attributes }}>
+                <div class="gm__buyrow">
+                  <button type="button" class="gm__btn gm__btn--cta" data-gm-add {% if p != blank and current.available == false %}aria-disabled="true"{% endif %}>
+                    <span class="gm__btn-label">
+                      {%- if p != blank and current.available == false -%}{{ s.soldout_text | default: 'Sold out' }}
+                      {%- else -%}{{ s.cta_text | default: 'Add to Cart' }}{%- endif -%}
+                    </span>
+                    <span class="gm__btn-spinner" aria-hidden="true"></span>
+                  </button>
+                </div>
+                <div class="gm__error" data-gm-error role="alert"></div>
+              </div>
+
+            {%- when 'trust' -%}
+              {%- if block.settings.trust_row != blank -%}
+                <div class="gm__ib" {{ block.shopify_attributes }}>
+                  <div class="gm__trustrow">
+                    {%- assign trust_items = block.settings.trust_row | split: '|' -%}
+                    {%- for item in trust_items -%}
+                      <span><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5l3.5 3.5L16 5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>{{ item | strip }}</span>
+                    {%- endfor -%}
+                  </div>
+                </div>
+              {%- endif -%}
+
+            {%- when 'links' -%}
+              <div class="gm__ib" {{ block.shopify_attributes }}>
+                <div class="gm__secondary-ctas">
+                  {%- if block.settings.text_1 != blank and block.settings.link_1 != blank -%}<a href="{{ block.settings.link_1 }}">{{ block.settings.text_1 }}</a>{%- endif -%}
+                  {%- if block.settings.text_2 != blank and block.settings.link_2 != blank -%}<a href="{{ block.settings.link_2 }}">{{ block.settings.text_2 }}</a>{%- endif -%}
+                </div>
+              </div>
+
+            {%- when 'text' -%}
+              <div class="gm__ib gm__block-text rte" {{ block.shopify_attributes }}>
+                {{ block.settings.content }}
+              </div>
+
+            {%- when 'description' -%}
+              {%- if p.description != blank -%}
+                <div class="gm__ib rte" {{ block.shopify_attributes }}>
+                  {%- if block.settings.title != blank -%}<h3 class="gm__ib-title">{{ block.settings.title }}</h3>{%- endif -%}
+                  {{ p.description }}
+                </div>
+              {%- endif -%}
+
+            {%- when 'separator' -%}
+              <div class="gm__ib" {{ block.shopify_attributes }}><hr class="gm__sep"></div>
+
+            {%- when 'custom_liquid' -%}
+              <div class="gm__ib gm__block-custom" {{ block.shopify_attributes }}>
+                {{ block.settings.code }}
+              </div>
+
+            {%- when '@app' -%}
+              <div class="gm__ib" {{ block.shopify_attributes }}>{% render block %}</div>
+
+          {%- endcase -%}
+        {%- endfor -%}
+
+        {%- else -%}
+          {%- comment -%} No blocks (section included statically, e.g. product.liquid): render a sensible default buy box. {%- endcomment -%}
+          <div class="gm__ib">
+            {%- if p.vendor != blank -%}<p class="gm__eyebrow">{{ p.vendor }}</p>{%- endif -%}
+            <h1 class="gm__title">{{ p.title | default: 'Your product headline' }}</h1>
+          </div>
+
+          <div class="gm__ib">
+            {%- if p != blank -%}
+              <div class="gm__pricerow">
+                <span class="gm__price" data-gm-price>{{ current.price | money }}</span>
+                {%- if current.compare_at_price > current.price -%}
+                  <span class="gm__compare" data-gm-compare>{{ current.compare_at_price | money }}</span>
+                  {%- assign pct = current.compare_at_price | minus: current.price | times: 100 | divided_by: current.compare_at_price -%}
+                  <span class="gm__save">Save {{ pct }}%</span>
+                {%- endif -%}
+              </div>
+            {%- else -%}
+              <div class="gm__pricerow"><span class="gm__price">{{ s.fallback_price }}</span></div>
+            {%- endif -%}
+          </div>
+
+          <div class="gm__ib">{% render 'gm-variant-picker', p: p, section_id: uid %}</div>
+
+          <div class="gm__ib">
+            <div class="gm__label">Quantity</div>
+            <div class="gm__qty" data-gm-qty>
+              <button type="button" aria-label="Decrease quantity" data-gm-minus>&minus;</button>
+              <input type="number" inputmode="numeric" min="1" value="1" aria-label="Quantity" data-gm-qty-input>
+              <button type="button" aria-label="Increase quantity" data-gm-plus>&plus;</button>
+            </div>
+          </div>
+
+          <div class="gm__ib">
+            <div class="gm__buyrow">
+              <button type="button" class="gm__btn gm__btn--cta" data-gm-add {% if p != blank and current.available == false %}aria-disabled="true"{% endif %}>
+                <span class="gm__btn-label">
+                  {%- if p != blank and current.available == false -%}{{ s.soldout_text | default: 'Sold out' }}
+                  {%- else -%}{{ s.cta_text | default: 'Add to Cart' }}{%- endif -%}
+                </span>
+                <span class="gm__btn-spinner" aria-hidden="true"></span>
+              </button>
+            </div>
+            <div class="gm__error" data-gm-error role="alert"></div>
+          </div>
+
+          <div class="gm__ib">
+            <div class="gm__trustrow">
+              <span><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5l3.5 3.5L16 5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Free shipping</span>
+              <span><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5l3.5 3.5L16 5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Secure checkout</span>
+              <span><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5l3.5 3.5L16 5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Easy returns</span>
+            </div>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+
+  {%- if p != blank -%}
+    <script type="application/ld+json">{{ p | structured_data }}</script>
+    <script type="application/json" data-gm-variants>
+      [
+        {%- for v in p.variants -%}
+          {
+            "id": {{ v.id }},
+            "options": {{ v.options | json }},
+            "available": {{ v.available }},
+            "inventory_policy": {{ v.inventory_policy | json }},
+            "inventory_management": {{ v.inventory_management | json }},
+            "price": {{ v.price | money | json }},
+            "compare_at_price": {{ v.compare_at_price | money | json }},
+            "image": {{ v.featured_media.preview_image | image_url: width: 1000 | json }}
+          }{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      ]
+    </script>
+  {%- endif -%}
+
+  {%- if s.show_sticky and p != blank -%}
+    <div class="gm__sticky" data-gm-sticky data-gm-owner="gm-product-{{ uid }}" aria-hidden="true">
+      <div class="gm__sticky-inner">
+        {%- if p.featured_image != blank -%}
+          <img class="gm__sticky-thumb" src="{{ p.featured_image | image_url: width: 100 }}" alt="{{ p.title | escape }}" loading="lazy" width="50" height="50">
+        {%- endif -%}
+        <div class="gm__sticky-info">
+          <span class="gm__sticky-name">{{ p.title }}</span>
+          <span class="gm__sticky-price" data-gm-price>{{ current.price | money }}</span>
+        </div>
+
+        {%- unless p.has_only_default_variant -%}
+          <div class="gm__sticky-variants">
+            {%- for option in p.options_with_values -%}
+              <select class="gm__sticky-opt" data-gm-sticky-option="{{ forloop.index0 }}" aria-label="{{ option.name }}">
+                {%- for value in option.values -%}
+                  <option value="{{ value | escape }}" {% if option.selected_value == value %}selected{% endif %}>{{ value }}</option>
+                {%- endfor -%}
+              </select>
+            {%- endfor -%}
+          </div>
+        {%- endunless -%}
+
+        <div class="gm__qty gm__sticky-qty" data-gm-qty>
+          <button type="button" aria-label="Decrease quantity" data-gm-minus>&minus;</button>
+          <input type="number" inputmode="numeric" min="1" value="1" aria-label="Quantity" data-gm-qty-input>
+          <button type="button" aria-label="Increase quantity" data-gm-plus>&plus;</button>
+        </div>
+
+        <button type="button" class="gm__btn gm__btn--cta" data-gm-add {% if current.available == false %}aria-disabled="true"{% endif %}>
+          <span class="gm__btn-label">{{ s.cta_text | default: 'Add to Cart' }}</span>
+          <span class="gm__btn-spinner" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+  {%- endif -%}
+</div>
+
+{%- if s.enable_cart_drawer -%}
+  {% render 'gm-cart-drawer' %}
+{%- endif -%}
+
+<script src="{{ 'gm-product.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Product main",
+  "tag": "section",
+  "class": "gm-product-main",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product (fallback)", "info": "On a product template the page's product is used automatically. This picker is only used on a page or home." },
+    { "type": "image_picker", "id": "hero_image", "label": "Override gallery image", "info": "Optional. If empty, the product image gallery is shown." },
+    { "type": "text", "id": "offer_badge", "label": "Offer badge", "info": "Optional, e.g. \"Buy 2, Get 1 Free\". Marketing only." },
+    { "type": "text", "id": "fallback_price", "label": "Fallback price", "info": "Shown only when no product is connected." },
+    { "type": "header", "content": "Add to Cart behavior" },
+    { "type": "text", "id": "cta_text", "label": "Add to Cart text", "default": "Add to Cart" },
+    { "type": "text", "id": "added_text", "label": "Text after adding", "default": "Added ✓" },
+    { "type": "text", "id": "soldout_text", "label": "Sold out text", "default": "Sold out" },
+    {
+      "type": "select", "id": "after_add", "label": "After adding to cart",
+      "options": [ { "value": "stay", "label": "Stay on page" }, { "value": "drawer", "label": "Open cart drawer" }, { "value": "redirect_cart", "label": "Go to cart page" } ],
+      "default": "drawer"
+    },
+    { "type": "checkbox", "id": "show_sticky", "label": "Show sticky Add to Cart bar", "default": true },
+    { "type": "checkbox", "id": "enable_cart_drawer", "label": "Enable slide-out cart drawer", "default": true },
+    { "type": "header", "content": "Brand colors & style (applies to all sections)" },
+    { "type": "color", "id": "color_primary", "label": "Primary", "default": "#7BA68E" },
+    { "type": "color", "id": "color_accent", "label": "Accent", "default": "#E8C07D" },
+    { "type": "color", "id": "color_cta", "label": "CTA button", "default": "#2F4A3C" },
+    { "type": "color", "id": "color_cta_text", "label": "CTA text", "default": "#FFFFFF" },
+    { "type": "color", "id": "color_bg", "label": "Background", "default": "#FBF8F3" },
+    { "type": "color", "id": "color_surface", "label": "Surface / cards", "default": "#FFFFFF" },
+    { "type": "color", "id": "color_text", "label": "Text", "default": "#2B2A28" },
+    { "type": "font_picker", "id": "heading_font", "label": "Heading font", "default": "assistant_n4" },
+    { "type": "range", "id": "corner_radius", "label": "Corner radius", "min": 0, "max": 28, "step": 2, "default": 16, "unit": "px" }
+  ],
+  "blocks": [
+    { "type": "@app" },
+    {
+      "type": "title", "name": "Title", "limit": 1,
+      "settings": [
+        { "type": "text", "id": "eyebrow", "label": "Eyebrow", "info": "Leave blank to use the product vendor." },
+        { "type": "text", "id": "heading", "label": "Heading", "info": "Leave blank to use the product title." },
+        { "type": "textarea", "id": "subtext", "label": "Subheadline" }
+      ]
+    },
+    { "type": "price", "name": "Price", "limit": 1 },
+    { "type": "variant_picker", "name": "Variant picker", "limit": 1 },
+    {
+      "type": "quantity", "name": "Quantity selector", "limit": 1,
+      "settings": [ { "type": "text", "id": "label", "label": "Label", "default": "Quantity" } ]
+    },
+    { "type": "buy_buttons", "name": "Add to Cart button", "limit": 1 },
+    {
+      "type": "trust", "name": "Trust row",
+      "settings": [ { "type": "text", "id": "trust_row", "label": "Trust items", "info": "Separate with |", "default": "Free shipping | Secure checkout | Easy returns" } ]
+    },
+    {
+      "type": "links", "name": "Secondary links",
+      "settings": [
+        { "type": "text", "id": "text_1", "label": "Link 1 text", "default": "See reviews" },
+        { "type": "text", "id": "link_1", "label": "Link 1 URL", "default": "#reviews" },
+        { "type": "text", "id": "text_2", "label": "Link 2 text", "default": "FAQ" },
+        { "type": "text", "id": "link_2", "label": "Link 2 URL", "default": "#faq" }
+      ]
+    },
+    {
+      "type": "text", "name": "Text",
+      "settings": [ { "type": "richtext", "id": "content", "label": "Text", "default": "<p>Add a short line of supporting copy.</p>" } ]
+    },
+    {
+      "type": "description", "name": "Product description",
+      "settings": [ { "type": "text", "id": "title", "label": "Heading" } ]
+    },
+    { "type": "separator", "name": "Separator" },
+    {
+      "type": "custom_liquid", "name": "Custom Liquid",
+      "settings": [ { "type": "liquid", "id": "code", "label": "Custom Liquid", "info": "Add any Liquid/HTML. Renders at this position in the buy box." } ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product main",
+      "blocks": [
+        { "type": "title" },
+        { "type": "price" },
+        { "type": "variant_picker" },
+        { "type": "quantity" },
+        { "type": "buy_buttons" },
+        { "type": "trust" },
+        { "type": "links" }
+      ]
+    }
+  ]
+}
+{% endschema %}
